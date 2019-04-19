@@ -1,0 +1,44 @@
+body {
+    margin: 0;
+    user-select: none;
+}
+:root #app-root{
+    height: 100%;
+    overflow-y: scroll;
+}
+:root .dropdown{
+    top: 52px !important;
+}
+:root .dropdown > .ant-dropdown-menu{
+    padding:  0;
+    background-color: #242424;
+    border: 1px solid #000;
+}
+:root .dropdown > .ant-dropdown-menu > .ant-dropdown-menu-item > a{
+    color: #ccc;
+    border-bottom: 1px solid #000;
+    padding: 9px 17px;
+    font-size: 12px;
+}
+:root .dropdown > .ant-dropdown-menu > .ant-dropdown-menu-item > a > .anticon{
+    font-size: 16px;
+}
+:root .dropdown > .ant-dropdown-menu > .ant-dropdown-menu-item:last-child > a {
+    border-bottom: none ;
+}
+:root .dropdown > .ant-dropdown-menu > .ant-dropdown-menu-item > a:hover{
+    background-color: #383636;
+    color: #fff;
+}
+:root .dropdown > .ant-dropdown-menu > .ant-dropdown-menu-item > a > .anticon {
+    margin-right: 10px;
+}
+:root .ant-popover > .ant-popover-content{
+    width: 670px;
+}
+:root .ant-popover > .ant-popover-content > .ant-popover-inner > div > .ant-popover-title{
+    padding: 15px 0 15px 26px;
+}
+:root .ant-popover > .ant-popover-content > .ant-popover-inner > div > .ant-popover-inner-content{
+    padding: 0;
+}
