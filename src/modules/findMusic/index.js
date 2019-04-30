@@ -1,7 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
 import { Tabs } from 'antd'
-import { HashRouter as Router, Link, Route, Switch } from 'react-router-dom'
+import { Link, Route, Switch } from 'react-router-dom'
 import connect from '@connect';
 import Loadable from 'react-loadable'
 import { Loading } from '@components' 
@@ -58,12 +58,21 @@ const ProgramDetail = Loadable({
     loader: () => import('@modules/findMusic/ProgramDetailView'),
     loading: Loading
 })
+const UserDetail = Loadable({
+    loader: () => import('@modules/findMusic/UserDetailView'),
+    loading: Loading
+})
 const TabPane = Tabs.TabPane
 const Root = styled.div`
     width: 100%;
     height: 100%;
     display: flex;
     flex-direction: column;
+    .line{
+        width: 100%;
+        height: 5px;
+        background-color: #C20C0C;
+    }
     .tabs{
         width: 100%;
         min-height: 10px;
@@ -74,9 +83,8 @@ const Root = styled.div`
             .ant-tabs-nav-wrap{
                 background-color: #C20C0C;
                 border-bottom: 1px solid #a40011;
-                padding: 6px 0;
                 .ant-tabs-tab{
-                    margin-right: 30px;
+                    margin: 6px 30px 5px 0;
                     font-size: 13px;
                     padding: 2px 0;
                     a{
@@ -135,33 +143,37 @@ export default class FindMusicView extends React.Component{
     }
     render(){
         return(
-            <Router>
-                <Root>
-                    <Tabs className="tabs" onChange={this.onTabsChange} activeKey={this.state.activeKey}>
+            <Root>
+                {
+                    this.props.location.pathname === '/user/home' ? 
+                    <div className="line" />
+                    :(<Tabs className="tabs" onChange={this.onTabsChange} activeKey={this.state.activeKey}>
                         <TabPane tab={<Link to="/">推荐</Link>} key="0" />
                         <TabPane tab={<Link to="/toplist">排行版</Link>} key="1" />
                         <TabPane tab={<Link to="/playlists">歌单</Link>} key="2" />
                         <TabPane tab={<Link to="/djradio">主播电台</Link>} key="3" />
                         <TabPane tab={<Link to="/artists">歌手</Link>} key="4" />
                         <TabPane tab={<Link to="/newAlbum">新碟上架</Link>} key="5" />
-                    </Tabs>
-                    <Switch>
-                        <Route path="/" exact component={Recommend} />
-                        <Route path="/toplist" exact component={Charts} />
-                        <Route path="/playlists" exact component={Songs} />
-                        <Route path="/djradio" exact component={RadioAnchor} />
-                        <Route path="/artists" exact component={Artists} />
-                        <Route path="/newAlbum" exact component={NewDishes} />
-                        <Route path="/song" exact component={SongDetail} />
-                        <Route path="/album" exact component={AlbumDetail} />
-                        <Route path="/playlist" exact component={SongListDetail} />
-                        <Route path="/artist" component={ArtistDetail} />
-                        <Route path="/mv" exact component={PlayVideo} />
-                        <Route path="/radio" exact component={RadioDetail} />
-                        <Route path="/program" exact component={ProgramDetail} />
-                    </Switch>
-                </Root>
-            </Router>
+                    </Tabs>)
+                }
+                
+                <Switch>
+                    <Route path="/" exact component={Recommend} />
+                    <Route path="/toplist" exact component={Charts} />
+                    <Route path="/playlists" exact component={Songs} />
+                    <Route path="/djradio" exact component={RadioAnchor} />
+                    <Route path="/artists" exact component={Artists} />
+                    <Route path="/newAlbum" exact component={NewDishes} />
+                    <Route path="/song" exact component={SongDetail} />
+                    <Route path="/album" exact component={AlbumDetail} />
+                    <Route path="/playlist" exact component={SongListDetail} />
+                    <Route path="/artist" component={ArtistDetail} />
+                    <Route path="/mv" exact component={PlayVideo} />
+                    <Route path="/radio" exact component={RadioDetail} />
+                    <Route path="/program" exact component={ProgramDetail} />
+                    <Route path="/user/home" exact component={UserDetail} />
+                </Switch>
+            </Root>
         )
     }
 }

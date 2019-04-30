@@ -50,6 +50,7 @@ const Root = styled.div`
                     display: flex;
                     padding: 15px 0;
                     border-bottom: 1px dotted #ddd;
+                    font-size: 12px;
                     .dec{
                         margin: 0 0 0 10px;
                         width: 100%;
@@ -58,6 +59,10 @@ const Root = styled.div`
                             height: 20px;
                             line-height: 20px;
                             margin: 0;
+                            color: #333;
+                            a{
+                                color: #0c73c2;
+                            }
                             a: hover{
                                 text-decoration: underline;
                             }
@@ -130,7 +135,7 @@ export default class CommentView extends React.Component{
                     <div className="write">
                         <img src="../../../public/img/avatar.jpg" style={{ height: 50 }} />
                         <div>
-                            <TextArea rows={3} style={{ resize: 'none', width: 571, marginLeft: 15 }} />
+                            <TextArea rows={3} style={{ resize: 'none', width: this.props.width || 574, marginLeft: 15 }} />
                             <div style={{ textAlign: 'right', marginTop: 10, color: '#999' }}>140<Button className="commentBtn">评论</Button></div>
                         </div>
                     </div>

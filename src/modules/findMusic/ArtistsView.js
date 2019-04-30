@@ -358,7 +358,7 @@ export default class ArtistsView extends React.Component{
                                                         <Link to={`/artist?id=${a.id}`}>{a.name}</Link>
                                                         {
                                                             a.accountId && (<Tooltip placement="bottom" title={a.name + '的个人主页'}>
-                                                                <Avatar icon="user" style={{ backgroundColor:  '#dc2f2f', fontSize: 17}} />
+                                                                <Link to={`/user/home?id=${a.accountId}`}><Avatar icon="user" style={{ backgroundColor:  '#dc2f2f', fontSize: 17}} /></Link>
                                                             </Tooltip>)
                                                         }
                                                     </div>

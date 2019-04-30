@@ -37,4 +37,7 @@ export default {
     removeSong: 'removeSong',
     pushPlayList: 'pushPlayList',
     addPlayList: 'addPlayList',
+    addProgramDetail: 'addProgramDetail',
+    getUserDetail: 'getUserDetail',
+    
 }

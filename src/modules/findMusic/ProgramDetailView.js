@@ -2,7 +2,7 @@ import React from 'react'
 import styled from 'styled-components'
 import connect from '@connect'
 import { Link } from 'react-router-dom'
-import { Button, Icon } from 'antd';
+import { Button, Icon, message } from 'antd';
 import { millisecond } from '@utils'
 import Comment from './CommentView'
 
@@ -35,13 +35,13 @@ const Root = styled.div`
                         .logo{
                             background-color: #da1e1e;
                             color: #fff;
-                            padding: 4px 15px;
+                            padding: 4px 10px;
                             border-top-right-radius: 15px;
                             border-bottom-right-radius: 15px;
                             font-size: 12px;
                             border: 1px solid #e06965;
                             height: 28px;
-                            width: 85px;
+                            white-space: nowrap;
                         }
                         .title{
                             margin: 0 0 0 10px;
@@ -225,9 +225,6 @@ const Root = styled.div`
 `
 @connect('findMusic')
 export default class ProgramDetailView extends React.Component{
-    state={
-        programDetail: {}
-    }
     componentWillMount(){
         this.getSearch(this.props.location.search)
     }
@@ -242,13 +239,20 @@ export default class ProgramDetailView extends React.Component{
         const rid = searchParams.get('rid')
         const id = searchParams.get('id')
         this.props.selectDjProgramByIdFun(rid, data=>{
-            data.map(d=>d.id == id ? this.setState({ programDetail: d }) : '')
+            data.map(d=>d.id == id ? this.props.addProgramDetailFun(d) : '')
         })
         this.props.selectCommentByIdFun(id, 'dj')
     }
+    //电台节目播放
+    onProgramPlay = p =>{
+        if(p.programFeeType === '1'){
+            message.warn('暂无版权')
+            return
+        }
+        this.props.selectSongUrlByIdFun(p.mainTrackId, p.name, {name: p.radio.name, id: p.radio.id})
+    }
     render(){
-        const { programDetail } = this.state
-        const { djPrograms } = this.props
+        const { djPrograms, programDetail } = this.props
         const rid = new URLSearchParams(this.props.location.search.substring(1)).get('rid')
         return(
             <Root>
@@ -273,7 +277,7 @@ export default class ProgramDetailView extends React.Component{
                                 </div>
                             </div>
                             <div className="btns">
-                                <Button className="ibtn"><Icon type="play-circle" className="icon" /><span>播放 {millisecond.secToMinute(programDetail.duration)}</span></Button>
+                                <Button onClick={this.onProgramPlay.bind(this, programDetail)} className="ibtn"><Icon type="play-circle" className="icon" /><span>播放 {millisecond.secToMinute(programDetail.duration)}</span></Button>
                                 <Button className="btn"><Icon type="like" className="icon" /><span>{`(${programDetail.likedCount})`}</span></Button>
                                 <Button className="btn"><Icon type="message" className="icon" /><span>{`(${programDetail.commentCount})`}</span></Button>
                                 <Button className="btn"><Icon type="share-alt" className="icon" /><span>{`(${programDetail.shareCount})`}</span></Button>

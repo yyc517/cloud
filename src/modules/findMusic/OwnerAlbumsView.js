@@ -15,12 +15,12 @@ const Root = styled.div`
             width: 130px;
             position: relative;
             margin: 0 0 30px 40px;
-            img{
+            .image > img{
                 height: 130px;
                 margin-bottom: 5px;
                 border: 1px solid #b1aaaa;
             }
-            img: hover + .play{
+            .image: hover + .play{
                 display: block;
             }
             .play{
@@ -68,6 +68,13 @@ export default class OwnerAlbumsView extends React.Component{
         const id = searchParams.get('id')
         this.props.selectArtistAlbumFun(id)
     }
+    //点击专辑播放音乐
+    onAlbumPlay = id =>{
+        this.props.selectAlbumByIdFun(id, songs=>{
+            const list = songs.filter(s=>s.fee != '1')
+            this.props.pushPlayListFun(list)
+        })
+    }
     render(){
         const { artistAlbum } = this.props
         return(
@@ -76,9 +83,9 @@ export default class OwnerAlbumsView extends React.Component{
                     {
                         artistAlbum.map((a, i)=>(
                             <div className="item" key={i}>
-                                <Link to={`/album?id=${a.id}`}><img src={a.picUrl} /></Link>
+                                <Link to={`/album?id=${a.id}`} className="image"><img src={a.picUrl} /></Link>
                                 <Tooltip placement="bottomLeft" title="播放">
-                                    <Icon type="play-circle" className="play" />
+                                    <Icon type="play-circle" onClick={this.onAlbumPlay.bind(this, a.id)} className="play" />
                                 </Tooltip>
                                 <p className="name"><Link to={`/album?id=${a.id}`} className="name">{a.name}</Link></p>
                                 <p className="date">{millisecond.transformFullDate(a.publishTime)}</p>

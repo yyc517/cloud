@@ -581,7 +581,7 @@ export default class Index extends React.Component{
         hoverIndex: '',
         mode: 'cycle', //列表音乐播放模式循环(cycle)、随机(random)、单曲(single),
         songs: [], //列表歌曲
-        volume: 100, //音量大小,
+        volume: 30, //音量大小,
         isVolume: false, //是否暂时音量栏
     }
     componentWillMount(){
@@ -601,6 +601,8 @@ export default class Index extends React.Component{
                 this.setState({ activeKey: '3' })
             }else if(new RegExp('/musician').test(hash)){
                 this.setState({ activeKey: '4' })
+            }else if(new RegExp('/user/home').test(hash)){
+                this.setState({ activeKey: '5' })
             }else {
                 this.setState({ activeKey: '0' })
             }
@@ -745,13 +747,13 @@ export default class Index extends React.Component{
         mode === 'cycle' ? this.setState({ mode: 'random' }) : mode === 'random' ? this.setState({ mode: 'single' }) : this.setState({ mode: 'cycle' })
     }
     //播放列表中选择歌曲
-    selectListSong = id =>{
-        if(id === this.props.playingSong.id){
+    selectListSong = s =>{
+        if(s.id === this.props.playingSong.id){
             this.setState({ rate: 0, currentTime: '' })
             this.audio.currentTime = 0
             this.audio.play()
         }else{
-            this.props.selectSongUrlByIdFun(id)
+            this.props.playListPlayFun(s)
         }
     }
     render(){
@@ -789,7 +791,7 @@ export default class Index extends React.Component{
                                 onChange={this.onChange}
                                 activeKey={activeKey}
                             >
-                                {item.map((i,index) => (<TabPane tab={<Link to={i.path}>{i.name}<Icon style={{ display: activeKey == index ? 'block' : 'none' }} type="caret-up" /></Link>} key={i.key} />))}
+                                {item.map((i,index) => (<TabPane tab={<Link to={i.path}>{i.name}<Icon style={{ display: activeKey == index && !new RegExp('#/user/home').test(window.location.hash) ? 'block' : 'none' }} type="caret-up" /></Link>} key={i.key} />))}
                             </Tabs>
                             <div>
                                 <Input placeholder='音乐/视频/电台/用户' prefix={<Icon type="search" />} />
@@ -846,10 +848,14 @@ export default class Index extends React.Component{
                                 Your browser does not support the audio element.
                             </audio>}
                             {
-                                JSON.stringify(playingSong) !== '{}' ? 
-                                    (<Link to={`/song?id=${playingSong.id}`}>
-                                        <img src={playingSong.al.picUrl} className="avatar" />
-                                    </Link>)
+                                JSON.stringify(playingSong) !== '{}' ?
+                                    playingSong.djId == 0 ?
+                                        (<Link to={`/song?id=${playingSong.id}`}>
+                                            <img src={playingSong.al.picUrl} className="avatar" />
+                                        </Link>)
+                                        :(<Link to={`/program?rid=${playingSong.ar[0].id}&id=${playingSong.id}`}>
+                                            <img src={playingSong.pic} className="avatar" />
+                                        </Link>)
                                     :(<img src="http://s4.music.126.net/style/web2/img/default/default_album.jpg" className="avatar" />)   
                             }
                             
@@ -858,17 +864,24 @@ export default class Index extends React.Component{
                                     {
                                         JSON.stringify(playingSong) !== '{}' ?
                                         (<React.Fragment>
-                                            <Link to={`/song?id=${playingSong.id}`}>{playingSong.name}</Link>
+                                            {
+                                                playingSong.djId == 0 ?
+                                                <Link to={`/song?id=${playingSong.id}`}>{playingSong.name}</Link>
+                                                :<Link to={`/program?rid=${playingSong.ar[0].id}&id=${playingSong.id}`}>{playingSong.name + '[电台节目]'}</Link>
+                                            }
+                                            
                                             {
                                                 JSON.stringify(playingSong) !== '{}' && playingSong.mv ? 
                                                 <Link to={`/mv?id=${playingSong.mv}`}><Icon type="video-camera" /></Link> : ''
                                             }
                                             {
+                                                playingSong.djId == 0 ?
                                                 playingSong.ar.map((a, i)=>(
                                                     <React.Fragment key={i}>
                                                         <Link to={`/artist?id=${a.id}`}>{a.name}</Link>{playingSong.ar.length === i+1 ? '' : '/'}
                                                     </React.Fragment>
                                                 ))
+                                                : <Link to={`radio?id=${playingSong.ar[0].id}`}>{playingSong.ar[0].name}</Link>
                                             }
                                         </React.Fragment>) : ''
                                     }
@@ -919,7 +932,7 @@ export default class Index extends React.Component{
                                     <ul className="list">
                                         {
                                             playSongs.map((s, i)=>(
-                                                <li className={this.state.hoverIndex === i || s.id === playingSong.id ? "song selected" :"song"} key={i} onMouseEnter={this.mouseEnter.bind(this, i)} onMouseLeave={this.mouseLeave.bind(this)} onClick={this.selectListSong.bind(this, s.id)}>
+                                                <li className={this.state.hoverIndex === i || s.id === playingSong.id ? "song selected" :"song"} key={i} onMouseEnter={this.mouseEnter.bind(this, i)} onMouseLeave={this.mouseLeave.bind(this)} onClick={this.selectListSong.bind(this, s)}>
                                                     <div className="play">
                                                         <Icon type="caret-right" style={{ color: '#b80a0a', fontSize: 17, verticalAlign: 'text-bottom', display: s.id === playingSong.id ? '' : 'none' }} />
                                                     </div>
@@ -945,7 +958,7 @@ export default class Index extends React.Component{
                                                     </div>
                                                     <div className="artist">{s.ar.map((a, i)=>(
                                                         <React.Fragment key={i}>
-                                                            <Link to={`/artist?id=${a.id}`}>{a.name}</Link>{s.ar.length === i+1 ? '' : '/'}
+                                                            <Link onClick={e=>e.stopPropagation()} to={`/${s.djId == 0 ? 'artist' : 'radio'}?id=${a.id}`}>{a.name}</Link>{s.ar.length === i+1 ? '' : '/'}
                                                         </React.Fragment>
                                                     ))}</div>
                                                     <div className="duration">{millisecond.secTotime(s.dt)}</div>
@@ -962,11 +975,12 @@ export default class Index extends React.Component{
                                     <div className="lyrics" id="lyrics">
                                         {
                                             this.props.songUrl.length > 0 && JSON.stringify(playingSong) !== '{}' ? 
-                                            JSON.stringify(lyrics) !== '{}' ? lyrics.lyric.split('\n').map((e, i)=>(
+                                            JSON.stringify(lyrics) !== '{}' ? lyrics.lyric ? lyrics.lyric.split('\n').map((e, i)=>(
                                                 e && <p key={i} id={this.transformMill(e.split(']')[0].split('[')[1], lyrics.lyric.split('\n')[i+1].split(']')[0].split('[')[1]) ? 'active' : ''}>
                                                         {e.split(']')[1]}
                                                     </p>
-                                            )) : <p>纯音乐,无歌词</p>
+                                            )) : <p>暂无歌词</p>
+                                            : <p>纯音乐,无歌词</p>
                                             : ''
                                         }
                                     </div>

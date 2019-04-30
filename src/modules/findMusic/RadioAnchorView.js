@@ -1,7 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
 import connect from '@connect'
-import { Carousel, Icon } from 'antd'
+import { Carousel, Icon, message } from 'antd'
 import { Link } from 'react-router-dom'
 
 const Root = styled.div`
@@ -97,6 +97,27 @@ const Root = styled.div`
                         padding: 10px 0;
                         border-left: 1px solid #ddd;
                         border-right: 1px solid #ddd;
+                        .img{
+                            height: 40px;
+                            width: 40px;
+                            margin-left: 20px;
+                            position: relative;
+                            cursor: pointer;
+                            img{
+                                height: 40px;
+                            }
+                            img: hover + .anticon, .anticon:hover{
+                                display: block;
+                            }
+                            .anticon{
+                                font-size: 18px;
+                                color: #fff;
+                                position: absolute;
+                                left: 11px;
+                                top: 12px;
+                                display: none;
+                            }
+                        }
                         .info{
                             font-size: 12px;
                             margin-left: 10px;
@@ -105,6 +126,12 @@ const Root = styled.div`
                                 color: #999;
                                 margin-bottom: 0;
                                 cursor: pointer;
+                                text-overflow: ellipsis;
+                                overflow: hidden;
+                                white-space: nowrap;
+                            }
+                            p: first-child{
+                                color: #333;
                             }
                             p: hover{
                                 text-decoration: underline;
@@ -127,7 +154,7 @@ const Root = styled.div`
                             font-size: 12px;
                             padding: 0 6px;
                             margin: 11px 0 0 5px;
-                            cursor: pointer;
+                            color: #999;
                         }
                         .category: hover{
                             color: #666;
@@ -226,6 +253,16 @@ export default class RadioAnchorView extends React.Component{
     onNext = () =>{
         this.carousel.next()
     }
+    //
+    onProgramPlay = p =>{
+        console.log(p)
+        if(p.programFeeType === '1'){
+            message.warn('暂无版权')
+            return
+        }
+        this.props.addProgramDetailFun(p)
+        this.props.selectSongUrlByIdFun(p.mainTrackId)
+    }
     render(){
         const { cateList, programs, djRadios, selectedRadios } = this.props
         const id = new URLSearchParams(this.props.location.search.substring(1)).get('id')
@@ -283,12 +320,15 @@ export default class RadioAnchorView extends React.Component{
                                     {
                                         programs.map((p, i)=>(
                                             <li className="item" key={i}>
-                                                <img src={p.blurCoverUrl} style={{ height: 40, marginLeft: 20, cursor: 'pointer' }} />
+                                                <div className="img">
+                                                    <img src={p.blurCoverUrl} />
+                                                    <Icon type="play-circle" onClick={this.onProgramPlay.bind(this, p)} />
+                                                </div>
                                                 <div className="info">
-                                                    <p>{p.name}</p>
+                                                    <Link to={`/program?rid=${p.radio.id}&id=${p.id}`}>{p.name}</Link>
                                                     <p>{p.dj.brand}</p>
                                                 </div>
-                                                <div className="category">{p.radio.category}</div>
+                                                <Link to={`${this.props.match.url}?id=${p.radio.categoryId}`} className="category">{p.radio.category}</Link>
                                             </li>
                                         ))
                                     }
@@ -305,7 +345,7 @@ export default class RadioAnchorView extends React.Component{
                                                     <Link to={`/radio?id=${p.id}`}>{p.name}</Link>
                                                     <p>{p.dj.nickname}</p>
                                                 </div>
-                                                <div className="category">{p.category}</div>
+                                                <Link to={`${this.props.match.url}?id=${p.categoryId}`} className="category">{p.category}</Link>
                                             </li>
                                         ))
                                     }

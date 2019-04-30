@@ -72,6 +72,7 @@ const Root = styled.div`
             .item{
                 width: 140px;
                 margin: 0 0 30px 50px;
+                position: relative;
                 .bottom{
                     margin-top: -27px;
                     height: 27px;
@@ -91,7 +92,7 @@ const Root = styled.div`
                         line-height: 30px;
                         color: #ddd;
                         margin-right: 10px;
-                        font-size: 16px;
+                        font-size: 18px;
                         cursor: pointer;
                     }
                     .play: hover{
@@ -156,6 +157,13 @@ export default class SongsView extends React.Component{
             this.props.selectPlaylistFun(cat, order)
         }
     }
+    //点击歌单播放音乐
+    onPlayList = id =>{
+        this.props.selectSongListByIdFun(id, data=>{
+            const list = data.filter(d=>d.fee != '1')
+            this.props.pushPlayListFun(list)
+        })
+    }
     render(){
         const text=<a style={{ fontSize: 12, backgroundColor: '#fdfdfd', border: '1px solid #ddd', borderRadius: 3, padding: '4px 14px', color: '#000' }}>全部风格</a>
         const content=<CatListView {...this.props}/>
@@ -189,7 +197,7 @@ export default class SongsView extends React.Component{
                                         <Link to={`playlist?id=${p.id}`}><img src={p.coverImgUrl} style={{ width: 140, cursor: 'pointer' }} /></Link>
                                         <div className="bottom">
                                             <div className="playCount"><Icon type="customer-service" theme="filled" style={{ marginRight: '5px', fontSize: 14 }} />{millisecond.transformCount(p.playCount)}</div>
-                                            <Icon type="play-circle" className="play" />
+                                            <Icon type="play-circle" onClick={this.onPlayList.bind(this, p.id)} className="play" />
                                         </div>
                                         <Tooltip placement="bottomLeft" title={p.name} overlayStyle={{ fontSize: 12, whiteSpace: 'nowrap' }}>
                                             <p className="name"><Link to={`playlist?id=${p.id}`}>{p.name}</Link></p>

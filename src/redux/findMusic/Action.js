@@ -35,8 +35,12 @@ const self = {
         axios.get(`/top/list?idx=${index}`)
         .then(data=>{
             if(data.code === 200){
-                onSuccess && onSuccess(data.playlist)
+                if(onSuccess){
+                    onSuccess(data.playlist)
+                    return
+                }
                 dispatch({ type: ActionType.loadTopListByIndex, data: data.playlist })
+                dispatch( self.selectCommentByIdFun(data.playlist.id, 'playlist') )
             }
         })
     },
@@ -149,10 +153,14 @@ const self = {
         })
     },
     //获得专辑内容
-    selectAlbumByIdFun: id => dispatch => {
+    selectAlbumByIdFun: (id, onSuccess) => dispatch => {
         axios.get(`/album?id=${id}`)
         .then(data=>{
             if(data.code === 200){
+                if(onSuccess){
+                    onSuccess(data.songs)
+                    return
+                }
                 dispatch({ type: ActionType.selectAlbumDetailById, data: {album: data.album, songs: data.songs} })
                 dispatch( self.selectArtistAlbumFun(data.album.artist.id))
                 dispatch( self.selectCommentByIdFun(id, 'album'))
@@ -329,7 +337,7 @@ const self = {
     },
     //传入的音乐 id( 可多个 , 用逗号隔开 ), 可以获取对应的音乐的 url
     selectSongUrlByIdFun: id => (dispatch, getState) =>{
-        const {playingSong} = getState().findMusic
+        const {playingSong, programDetail} = getState().findMusic
         axios.get(`/song/url?id=${id}`)
         .then(data=>{
             if(data.code === 200){
@@ -338,10 +346,25 @@ const self = {
                 axios.get(`/song/detail?ids=${id}`)
                 .then(data=>{
                     if(data.code === 200){
-                        dispatch({ type: ActionType.pushSelectSong, data: data.songs[0] })
+                        dispatch({ 
+                            type: ActionType.pushSelectSong,
+                            data: data.songs[0].djId == 0 ? data.songs[0] : {...data.songs[0], name: programDetail.name, ar: [{name: programDetail.radio.name, id: programDetail.radio.id}], pic: programDetail.blurCoverUrl}
+                        })
                         dispatch(self.selectLyricsByIdFun(id))
                     }
                 }) : ''
+            }
+        })
+    },
+    //播放播放列表的歌曲
+    playListPlayFun: s => (dispatch, getState) =>{
+        const { djPrograms } = getState().findMusic
+        axios.get(`/song/url?id=${s.id}`)
+        .then(data=>{
+            if(data.code === 200){
+                dispatch({ type: ActionType.selectSongUrlById, data: data.data })
+                dispatch({ type: ActionType.pushSelectSong, data: s })
+                dispatch(self.selectLyricsByIdFun(s.id))
             }
         })
     },
@@ -369,14 +392,72 @@ const self = {
     removeSongFun: id => dispatch =>{
         dispatch({ type: ActionType.removeSong, data: id })
     },
+    //电台全部节目播放
+    pushProgramsFun: ids => (dispatch, getState) =>{
+        const {djPrograms} = getState().findMusic 
+        axios.get(`/song/url?id=${ids[0]}`)
+        .then(data=>{
+            if(data.code ===200){
+                dispatch({ type: ActionType.selectSongUrlById, data: data.data })
+                axios.get(`/song/detail?ids=${ids}`)
+                .then(data=>{
+                    if(data.code === 200){
+                        const newData = data.songs.map(d=>({
+                            ...d,
+                            name: d.name ? d.name : djPrograms.filter(p=>p.mainTrackId == d.id)[0].name,
+                            ar: d.ar.name ? d.ar : [{
+                                id: djPrograms.filter(p=>p.mainTrackId == d.id)[0].radio.id,
+                                name: djPrograms.filter(p=>p.mainTrackId == d.id)[0].radio.name
+                            }],
+                            pic: djPrograms.filter(p=>p.mainTrackId == d.id)[0].blurCoverUrl
+                        }))
+                        dispatch({ type: ActionType.pushPlayList, data: newData })
+                        dispatch(self.selectLyricsByIdFun(ids[0]))
+                    }
+                })
+            }
+        })
+    },
+    //电台节目添加到播放列表
+    addProgramsFun: id => (dispatch, getState) =>{
+        const {djPrograms} = getState().findMusic
+        axios.get(`/song/detail?ids=${id}`)
+        .then(data=>{
+            if(data.code === 200){
+                const newData = {
+                    ...data.songs[0],
+                    name: data.songs[0].name ? data.songs[0].name : djPrograms.filter(p=>p.mainTrackId == data.songs[0].id)[0].name,
+                    ar: data.songs[0].ar.name ? data.songs[0].ar : [{
+                        id: djPrograms.filter(p=>p.mainTrackId == data.songs[0].id)[0].radio.id,
+                        name: djPrograms.filter(p=>p.mainTrackId == data.songs[0].id)[0].radio.name
+                    }],
+                    pic: djPrograms.filter(p=>p.mainTrackId == data.songs[0].id)[0].blurCoverUrl
+                }
+                dispatch({ type: ActionType.addPlayList, data: newData })
+            }
+        })
+    },
+    //电台节目详情信息
+    addProgramDetailFun: data => dispatch =>{
+        dispatch({ type: ActionType.addProgramDetail, data })
+    },
+    //获取用户详情
+    getUserDetailFun: id => dispatch =>{
+        axios.get(`/user/detail?uid=${id}`)
+        .then(data=>{
+            if(data.code === 200){
+                dispatch({ type: ActionType.getUserDetail, data })
+            }
+        })
+    },
     //接口测试
     loading: () => dispatch => {
-        // axios.get(`/program?id=2060607662`)
-        // .then(data=>{
-        //     if(data.code === 200){
-        //         console.log('测试接口',data)
-        //     }
-        // })
+        axios.get(`/user/record?uid=198554&type=0`)
+        .then(data=>{
+            if(data.code === 200){
+                console.log('测试接口',data)
+            }
+        })
     },
 }
 export default self

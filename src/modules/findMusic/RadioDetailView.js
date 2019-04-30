@@ -30,13 +30,13 @@ const Root = styled.div`
                         .logo{
                             background-color: #da1e1e;
                             color: #fff;
-                            padding: 4px 15px;
+                            padding: 4px 10px;
                             border-top-right-radius: 15px;
                             border-bottom-right-radius: 15px;
                             font-size: 12px;
                             border: 1px solid #e06965;
                             height: 28px;
-                            width: 60px;
+                            white-space: nowrap;
                         }
                         .title{
                             margin: 0 0 0 10px;
@@ -157,7 +157,7 @@ const Root = styled.div`
                             justify-content: space-between;
                             .play{
                                 color: #b3b3b3;
-                                font-size: 17px;
+                                font-size: 18px;
                                 vertical-align: bottom;
                                 cursor: pointer;
                             }
@@ -315,8 +315,31 @@ export default class SongListDetailView extends React.Component{
         this.setState({ sort: e.target.value })
         this.props.sortDjProgramsFun(e.target.value)
     }
+    //全部播放
+    playAllPrograms = programs =>{
+        const list = programs.filter(p=>p.programFeeType != '1')
+        this.props.addProgramDetailFun(list[0])
+        this.props.pushProgramsFun(list.map(l=>l.mainTrackId))
+    }
+    //电台节目播放
+    onProgramPlay = p =>{
+        if(p.programFeeType === '1'){
+            message.warn('暂无版权')
+            return
+        }
+        this.props.addProgramDetailFun(p)
+        this.props.selectSongUrlByIdFun(p.mainTrackId)
+    }
+    //电台节目添加到播放列表
+    addPlayList = p =>{
+        if(p.programFeeType === '1'){
+            message.warn('暂无版权')
+            return
+        }
+        this.props.addProgramsFun(p.mainTrackId)
+    }
     render(){
-        const { radioDetail, djPrograms } = this.props
+        const { radioDetail, djPrograms, playingSong } = this.props
         const rid = new URLSearchParams(this.props.location.search.substring(1)).get('id')
         return(
             <Root>
@@ -341,7 +364,7 @@ export default class SongListDetailView extends React.Component{
                                     </div>
                                     <div className="btns">
                                         <Button className="ibtn"><Icon type="star" className="icon" /><span style={{ marginLeft: '5px', verticalAlign: 'text-bottom' }}>订阅{` (${radioDetail.subCount})`}</span></Button>
-                                        <Button className="btn"><Icon type="play-circle" className="icon" /><span style={{ marginLeft: 0, verticalAlign: 'text-bottom' }}>全部播放</span></Button>
+                                        <Button onClick={this.playAllPrograms.bind(this, djPrograms)} className="btn"><Icon type="play-circle" className="icon" /><span style={{ marginLeft: 0, verticalAlign: 'text-bottom' }}>全部播放</span></Button>
                                         <Button className="btn"><Icon type="share-alt" className="icon" /><span style={{ marginLeft: 0, verticalAlign: 'text-bottom' }}>分享{` (${radioDetail.shareCount})`}</span></Button>
                                     </div>
                                     <div className="dec">
@@ -365,13 +388,13 @@ export default class SongListDetailView extends React.Component{
                                     {
                                         djPrograms.map((p, i)=>(
                                             <li key={i} className="program"  onMouseEnter={this.mouseEnter.bind(this, i)} onMouseLeave={this.mouseLeave.bind(this)} style={this.state.hoverIndex === i ? {backgroundColor: '#ddddddb3'} : {}}>
-                                                <div className="item"><p>{i+1}</p><Icon type="play-circle" theme="filled" className="play" /></div>
+                                                <div className="item"><p>{i+1}</p><Icon type="play-circle" onClick={this.onProgramPlay.bind(this, p)} theme="filled" className="play" style={{ color: playingSong.id === p.mainTrackId ? '#d31111' : '' }} /></div>
                                                 <div className="item"><Link to={`/program?rid=${rid}&id=${p.id}`}>{p.name}</Link></div>
                                                 <div className="item">
                                                     { this.state.hoverIndex === i ? 
                                                         (<React.Fragment>
                                                             <Tooltip placement="bottomLeft" title="添加到播放列表" arrowPointAtCenter={true}>
-                                                                <Icon type="plus" className="showIcon" />
+                                                                <Icon type="plus" onClick={this.addPlayList.bind(this, p)} className="showIcon" />
                                                             </Tooltip>
                                                             <Tooltip placement="bottomLeft" title="分享" arrowPointAtCenter={true}>
                                                                 <Icon type="share-alt" className="showIcon" />

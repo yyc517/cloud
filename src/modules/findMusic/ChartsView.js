@@ -4,6 +4,7 @@ import connect from '@connect'
 import { Icon, Button, Tooltip } from 'antd'
 import { millisecond } from '@utils'
 import { Link } from 'react-router-dom'
+import CommentView from './CommentView'
 
 const Root = styled.div`
     width: 100%;
@@ -58,9 +59,9 @@ const Root = styled.div`
             background-color: #fff;
             border-left: 1px solid #ddd;
             border-right: 1px solid #ddd;
+            padding: 47px 30px 40px 40px;
             .listTop{
                 display: flex;
-                margin: 40px;
                 .pic{
                     border: 1px solid #ddd;
                     padding: 3px;
@@ -108,7 +109,7 @@ const Root = styled.div`
                 }
             }
             .charts{
-                margin: 0 40px;
+                margin-top: 40px;
                 .info{
                     display: flex;
                     justify-content: space-between;
@@ -116,6 +117,7 @@ const Root = styled.div`
                 .tracks{    
                     padding: 0;
                     margin-bottom: 0;
+                    border-bottom: 1px solid #ddd;
                    .title{
                         display: flex;
                         text-align: left;
@@ -237,7 +239,6 @@ const Root = styled.div`
 @connect('findMusic')
 export default class ChartsView extends React.Component{
     state={
-        selectedKey: '0',
         topListIndex: {
             '3779629': "0",
             '3778678': "1",
@@ -260,7 +261,15 @@ export default class ChartsView extends React.Component{
         hoverIndex: ''
     }
     componentWillMount(){
-        const { search } = this.props.location
+        this.getSearch(this.props.location.search)
+    }
+    componentWillUpdate(nextProps){
+        if(this.props.location !== nextProps.location){
+            const { search } = nextProps.location
+            this.getSearch(search)
+        }
+    }
+    getSearch(search){
         const paramsString = search.substring(1)
         const searchParams = new URLSearchParams(paramsString)
         const id = searchParams.get('id')
@@ -268,18 +277,8 @@ export default class ChartsView extends React.Component{
         this.props.loadAllTopListFun()
         if(id){
             this.props.loadTopListFun(this.state.topListIndex[id] || '11')
-            this.setState({ selectedKey: id === '3779629' ? '1' : id === '3778678' ? '3' : '2' })
         }else{
             this.props.loadTopListFun('3')
-        }
-    }
-    componentWillUpdate(nextProps){
-        if(this.props.location !== nextProps.location){
-            const { search } = nextProps.location
-            const paramsString = search.substring(1)
-            const searchParams = new URLSearchParams(paramsString)
-            const id = searchParams.get('id')
-            this.props.loadTopListFun(this.state.topListIndex[id] || '11')
         }
     }
     mouseEnter = (index) =>{
@@ -287,6 +286,38 @@ export default class ChartsView extends React.Component{
     }
     mouseLeave = () =>{
         this.setState({ hoverIndex: '' })
+    }
+    //点击排行榜播放音乐
+    onChartsPlay = list =>{
+        const newList = list.filter(d=>d.fee != '1')
+        this.props.pushPlayListFun(newList)
+    }
+    //将排行榜的歌曲添加到播放列表
+    addPlayList = list =>{
+        const newList = list.filter(d=>d.fee != '1')
+        newList.map(l=>this.props.addPlayListFun(l))
+    }
+    //移动到评论区
+    onMessageClick(){
+        const comment = document.getElementById('comment')
+        const app = document.getElementById('app-root')
+        app.scrollTop = comment.offsetTop
+    }
+    //点击单曲播放音乐
+    onSongPlay = s => {
+        if(s.fee == '1'){
+            message.warn('暂无版权')
+            return
+        }
+        this.props.selectSongUrlByIdFun(s.id)
+    }
+    //将单曲添加到播放列表
+    onSong = song =>{
+        if(song.fee == '1'){
+            message.warn('暂无版权')
+            return
+        }
+        this.props.addPlayListFun(song)
     }
     render(){
         const { topList, listInfo } = this.props
@@ -299,7 +330,7 @@ export default class ChartsView extends React.Component{
                         <ul className="list">
                             {
                                 topList.map((l, i)=>(
-                                    l.ToplistType && <Link to={`/toplist?id=${l.id}`} style={{ backgroundColor: l.id == id ? '#e2e2e2': '' }} className="item" key={i}>
+                                    l.ToplistType && <Link to={`/toplist?id=${l.id}`} style={{ backgroundColor: !id && i === 0 ? '#e2e2e2' : l.id == id ? '#e2e2e2': '' }} className="item" key={i}>
                                         <img src={l.coverImgUrl} style={{ height: '40px' }} />
                                         <div className="dec"><p>{l.name}</p><p>{l.updateFrequency}</p></div>
                                     </Link>
@@ -324,14 +355,14 @@ export default class ChartsView extends React.Component{
                             <div className="nav">
                                 <h2>{listInfo.name}</h2>
                                 <p><Icon type="clock-circle" style={{ marginRight: '5px' }} />最近更新：{millisecond.transformDate(listInfo.updateTime)}</p>
-                                <Button className="ibtn"><Icon type="play-circle" className="icon" /><span style={{ marginLeft: '5px' }}>播放</span></Button>
+                                <Button onClick={this.onChartsPlay.bind(this, listInfo.tracks)} className="ibtn"><Icon type="play-circle" className="icon" /><span style={{ marginLeft: '5px' }}>播放</span></Button>
                                 <Tooltip placement="bottomLeft" title="添加到播放列表" arrowPointAtCenter={true}>
-                                    <Button className="ibtn add"><Icon type="plus" className="icon" /></Button>
+                                    <Button onClick={this.addPlayList.bind(this, listInfo.tracks)} className="ibtn add"><Icon type="plus" className="icon" /></Button>
                                 </Tooltip>
                                 <Button className="btn"><Icon type="folder-add" className="icon" />{listInfo.subscribedCount}</Button>
                                 <Button className="btn"><Icon type="share-alt" className="icon" />{listInfo.shareCount}</Button>
                                 <Button className="btn"><Icon type="download" className="icon" /><span style={{ marginLeft: 0 }}>下载</span></Button>
-                                <Button className="btn"><Icon type="message" className="icon" />{listInfo.commentCount}</Button>
+                                <Button onClick={this.onMessageClick} className="btn"><Icon type="message" className="icon" />{listInfo.commentCount}</Button>
                             </div>
                         </div>
                         <div className="charts">
@@ -352,14 +383,20 @@ export default class ChartsView extends React.Component{
                                             <div className="index">{i + 1}</div>
                                             <div className="name">
                                                 { i < 3 && <Link to={`/song?id=${t.id}`}><img src={t.al.picUrl} style={{ height: '50px', marginRight: '14px' }} /></Link>}
-                                                <Icon type="play-circle" className="playIcon" />
-                                                <span className="song"><Link to={`/song?id=${t.id}`}>{t.al.name}</Link><span style={{ color: '#aeaeae' }}>{ i < 3 && t.alia.length > 0 && ` - (${t.alia})`}{ t.mv != 0 && <Link to={`/mv?id=${t.mv}`}><Icon type="video-camera" style={{ color: '#C20C0C', marginLeft: '5px' }} /></Link>}</span></span>
+                                                <Icon type="play-circle" onClick={this.onSongPlay.bind(this, t)} className="playIcon" />
+                                                <span className="song">
+                                                    <Link to={`/song?id=${t.id}`}>{t.name}</Link>
+                                                    <span style={{ color: '#aeaeae' }}>
+                                                        {t.alia.length > 0 && ` - (${t.alia})`}
+                                                        { t.mv != 0 && <Link to={`/mv?id=${t.mv}`}><Icon type="video-camera" style={{ color: '#C20C0C', marginLeft: '5px' }} /></Link>}
+                                                    </span>
+                                                </span>
                                             </div>
                                             <div className="time">
                                                 { this.state.hoverIndex === i ? 
                                                     (<React.Fragment>
                                                         <Tooltip placement="bottomLeft" title="添加到播放列表" arrowPointAtCenter={true}>
-                                                            <Icon type="plus" className="showIcon" />
+                                                            <Icon type="plus" onClick={this.onSong.bind(this, t)} className="showIcon" />
                                                         </Tooltip>
                                                         <Tooltip placement="bottomLeft" title="收藏" arrowPointAtCenter={true}>
                                                             <Icon type="folder-add" className="showIcon" />
@@ -383,6 +420,7 @@ export default class ChartsView extends React.Component{
                                 }
                             </ul>
                         </div>
+                        <CommentView {...this.props} width="602px" />
                     </div>
                 </div>
             </Root>

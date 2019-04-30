@@ -35,7 +35,9 @@ const initialState = {
     djPrograms: [],
     songUrl: [],
     playingSong: {},
-    playSongs: []
+    playSongs: [],
+    programDetail: {},
+    userDetail: {}
 }
 
 const getNewState = function(state, action){
@@ -193,6 +195,14 @@ const getNewState = function(state, action){
         case ActionType.addPlayList:
             return {
                 playSongs: state.playSongs.some(s=> s.id === action.data.id) ? state.playSongs : [...state.playSongs, action.data]
+            }
+        case ActionType.addProgramDetail:
+            return {
+                programDetail: action.data
+            }
+        case ActionType.getUserDetail:
+            return {
+                userDetail: action.data
             }
     }
 }

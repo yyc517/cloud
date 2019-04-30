@@ -1,6 +1,6 @@
 import React from 'react'
 import styled from 'styled-components'
-import { Icon, Tooltip } from 'antd'
+import { Icon, Tooltip, message } from 'antd'
 import connect from '@connect';
 import { Link } from 'react-router-dom'
 
@@ -52,7 +52,7 @@ const Root = styled.div`
                         border: 1px solid #b1aaaa;
                         cursor: pointer;
                     }
-                    img: hover + .play{
+                    .image: hover + .play{
                         display: block;
                     }
                     .name{
@@ -89,6 +89,16 @@ export default class NewDishesView extends React.Component{
         this.props.loadNewSongFun()
         this.props.loadAlbumsFun()
     }
+    onSongPlay = id =>{
+        this.props.selectAlbumByIdFun(id, data=>{
+            const list = data.filter(d=> d.fee!='1')
+            if(list.length == 0){
+                message.warn('暂无版权')
+                return
+            }
+            this.props.pushPlayListFun(list)
+        })
+    }
     render(){
         const { NewSong, albums } = this.props
         return(
@@ -100,9 +110,9 @@ export default class NewDishesView extends React.Component{
                         {
                             NewSong.map((s, i)=>(
                                 <div className="item" key={i}>
-                                    <Link to={`/album?id=${s.song.album.id}`}><img src={s.song.album.blurPicUrl} /></Link>
+                                    <Link to={`/album?id=${s.song.album.id}`} className="image"><img src={s.song.album.blurPicUrl} /></Link>
                                     <Tooltip placement="bottomLeft" title="播放">
-                                        <Icon type="play-circle" className="play" />
+                                        <Icon type="play-circle" onClick={this.onSongPlay.bind(this, s.song.album.id)} className="play" />
                                     </Tooltip>
                                     <Link to={`/album?id=${s.song.album.id}`} className="name">{s.song.album.name}</Link>
                                     <p>
@@ -121,8 +131,8 @@ export default class NewDishesView extends React.Component{
                         {
                             albums.map((s, i)=>(
                                 <div className="item" key={i}>
-                                    <Link to={`/album?id=${s.id}`}><img src={s.blurPicUrl} /></Link>
-                                    <Icon type="play-circle" className="play" />
+                                    <Link to={`/album?id=${s.id}`} className="image"><img src={s.blurPicUrl} /></Link>
+                                    <Icon type="play-circle" onClick={this.onSongPlay.bind(this, s.id)} className="play" />
                                     <Link to={`/album?id=${s.id}`} className="name">{s.name}</Link>
                                     <p>
                                         {

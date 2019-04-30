@@ -72,7 +72,7 @@ const Root = styled.div`
                 justify-content: space-between;
                 .play{
                     color: #b3b3b3;
-                    font-size: 17px;
+                    font-size: 18px;
                     vertical-align: bottom;
                     cursor: pointer;
                 }
@@ -134,17 +134,43 @@ export default class PopularWorksView extends React.Component{
     mouseLeave = () =>{
         this.setState({ hoverIndex: '' })
     }
+    //点击歌单播放音乐
+    onPlayList = list =>{
+        const newList = list.filter(d=>d.fee != '1')
+        this.props.pushPlayListFun(newList)
+    }
+    //将歌单添加到播放列表
+    addPlayList = list =>{
+        const newList = list.filter(d=>d.fee != '1')
+        newList.map(l=>this.props.addPlayListFun(l))
+    }
+    //将单曲添加到播放列表
+    onSong = song =>{
+        if(song.fee == '1'){
+            message.warn('暂无版权')
+            return
+        }
+        this.props.addPlayListFun(song)
+    }
+    //点击单曲播放音乐
+    onSongPlay = t => {
+        if(t.fee == '1'){
+            message.warn('暂无版权')
+            return
+        }
+        this.props.selectSongUrlByIdFun(t.id)
+    }
     render(){
-        const { artistDetail } = this.props
+        const { artistDetail, playingSong } = this.props
         return(
             <Root>
                 {
                     JSON.stringify(artistDetail) !== '{}' ?
                     (<React.Fragment>
                         <div className="btns">
-                            <Button className="ibtn"><Icon type="play-circle" className="icon" /><span style={{ marginLeft: '5px', verticalAlign: 'text-bottom' }}>播放</span></Button>
+                            <Button onClick={this.onPlayList.bind(this, artistDetail.hotSongs)} className="ibtn"><Icon type="play-circle" className="icon" /><span style={{ marginLeft: '5px', verticalAlign: 'text-bottom' }}>播放</span></Button>
                             <Tooltip placement="bottomLeft" title="添加到播放列表" arrowPointAtCenter={true}>
-                                <Button className="ibtn add"><Icon type="plus" className="icon" /></Button>
+                                <Button onClick={this.addPlayList.bind(this, artistDetail.hotSongs)} className="ibtn add"><Icon type="plus" className="icon" /></Button>
                             </Tooltip>
                             <Button className="btn"><Icon type="folder-add" className="icon" /><span style={{ marginLeft: '3px', verticalAlign: 'text-bottom' }}>收藏热门50</span></Button>
                         </div>
@@ -152,13 +178,13 @@ export default class PopularWorksView extends React.Component{
                             {
                                 artistDetail.hotSongs.map((s, i)=>(
                                     <li className="song" key={i} onMouseEnter={this.mouseEnter.bind(this, i)} onMouseLeave={this.mouseLeave.bind(this)}>
-                                        <div className="index"><p>{i+1}</p><Icon type="play-circle" theme="filled" className="play" /></div>
+                                        <div className="index"><p>{i+1}</p><Icon type="play-circle" onClick={this.onSongPlay.bind(this, s)} theme="filled" className="play" style={{ color: playingSong.id === s.id ? '#d31111' : '' }} /></div>
                                         <div className="title"><Link to={`/song?id=${s.id}`}>{s.name}</Link>{s.tns ? <span style={{ color: '#999' }}>{' - ('+ s.tns[0] +')'}</span> : s.alia.length > 0 ? <span style={{ color: '#999' }}>{' - ('+ s.alia[0] +')'}</span> : ''}{s.mv === 0 ? '' : <Tooltip placement="bottom" title="播放mv"><Link to={`/mv?id=${s.mv}`}><Icon type="video-camera" className="video" /></Link></Tooltip>  }</div>
                                         <div className="time">
                                             { this.state.hoverIndex === i ? 
                                                 (<React.Fragment>
                                                     <Tooltip placement="bottomLeft" title="添加到播放列表" arrowPointAtCenter={true}>
-                                                        <Icon type="plus" className="showIcon" />
+                                                        <Icon type="plus" onClick={this.onSong.bind(this, s)} className="showIcon" />
                                                     </Tooltip>
                                                     <Tooltip placement="bottomLeft" title="收藏" arrowPointAtCenter={true}>
                                                         <Icon type="folder-add" className="showIcon" />

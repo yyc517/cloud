@@ -38,13 +38,13 @@ const Root = styled.div`
                         .logo{
                             background-color: #da1e1e;
                             color: #fff;
-                            padding: 4px 15px;
+                            padding: 4px 10px;
                             border-top-right-radius: 15px;
                             border-bottom-right-radius: 15px;
                             font-size: 12px;
                             border: 1px solid #e06965;
                             height: 28px;
-                            width: 60px;
+                            white-space: nowrap;
                         }
                         .title{
                             margin: 0 0 0 10px;

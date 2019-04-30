@@ -131,7 +131,7 @@ const Root = styled.div`
                             width: 140px;
                             position: relative;
                             .bottom{
-                                bottom: 47px;
+                                top: 113px;
                                 height: 27px;
                                 background: #19181869;
                                 width: 140px;
@@ -149,7 +149,7 @@ const Root = styled.div`
                                     line-height: 30px;
                                     color: #ddd;
                                     margin-right: 10px;
-                                    font-size: 16px;
+                                    font-size: 18px;
                                     cursor: pointer;
                                 }
                                 .play: hover{
@@ -404,9 +404,13 @@ const Root = styled.div`
                                         overflow: hidden;
                                         text-align: left;
                                         a{
-                                            margin: 7px 0;
+                                            margin: 2px 0;
                                             color: #000;
                                             font-size: 12px;
+                                            display: block;
+                                            white-space: nowrap;
+                                            text-overflow: ellipsis;
+                                            overflow: hidden;
                                         }
                                         a: hover{
                                             text-decoration: underline;
@@ -529,7 +533,7 @@ export default class RecommendView extends React.Component{
     //点击排行榜播放音乐
     onChartsList = list =>{
         const newList = list.filter(d=>d.fee != '1')
-        this.props.pushSelectSongFun(newList)
+        this.props.pushPlayListFun(newList)
     }
     //将单曲添加到播放列表
     onSong = song =>{
